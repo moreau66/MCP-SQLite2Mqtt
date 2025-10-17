@@ -1,0 +1,149 @@
+{
+  "metadata": {
+    "id": "sqlite2mqtt",
+    "name": "SQLite2MQTT",
+    "version": "1.0.0",
+    "description": "Base de données SQLite avec passerelle MQTT pour stockage local léger et rapide des données de capteurs",
+    "author": "moreau66",
+    "category": "core",
+    "tags": ["sqlite", "database", "mqtt", "storage", "local"],
+    "icon": "Database"
+  },
+  "container": {
+    "image": "moreau66/sqlite2mqtt",
+    "defaultVersion": "latest",
+    "autoStart": true,
+    "ports": [
+      {
+        "container": 8080,
+        "host": 8080,
+        "protocol": "tcp",
+        "description": "API REST SQLite"
+      }
+    ],
+    "volumes": [
+      {
+        "container": "/data",
+        "host": "./sqlite/data",
+        "mode": "rw",
+        "description": "Fichiers de base de données SQLite"
+      },
+      {
+        "container": "/config",
+        "host": "./sqlite/config",
+        "mode": "rw",
+        "description": "Configuration SQLite2MQTT"
+      },
+      {
+        "container": "/logs",
+        "host": "./sqlite/logs",
+        "mode": "rw",
+        "description": "Logs du service"
+      }
+    ],
+    "environment": [
+      {
+        "key": "MQTT_BROKER",
+        "value": "mosquitto",
+        "required": true,
+        "description": "Adresse du broker MQTT"
+      },
+      {
+        "key": "MQTT_PORT",
+        "value": "1883",
+        "required": true,
+        "description": "Port du broker MQTT"
+      },
+      {
+        "key": "MQTT_TOPIC",
+        "value": "sqlite/data",
+        "required": true,
+        "description": "Topic de base pour les publications"
+      },
+      {
+        "key": "MQTT_USER",
+        "value": "",
+        "required": false,
+        "description": "Utilisateur MQTT (optionnel)"
+      },
+      {
+        "key": "MQTT_PASS",
+        "value": "",
+        "required": false,
+        "secret": true,
+        "description": "Mot de passe MQTT (optionnel)"
+      },
+      {
+        "key": "SQLITE_DB_PATH",
+        "value": "/data/neurohomeia.db",
+        "required": true,
+        "description": "Chemin du fichier de base de données"
+      },
+      {
+        "key": "AUTO_VACUUM",
+        "value": "true",
+        "required": false,
+        "description": "Activer le nettoyage automatique"
+      },
+      {
+        "key": "BACKUP_ENABLED",
+        "value": "true",
+        "required": false,
+        "description": "Activer les sauvegardes automatiques"
+      },
+      {
+        "key": "BACKUP_INTERVAL",
+        "value": "86400",
+        "required": false,
+        "description": "Intervalle de sauvegarde en secondes (24h par défaut)"
+      }
+    ],
+    "restart": "unless-stopped",
+    "labels": {
+      "discovery.type": "database",
+      "discovery.core": "true",
+      "neurohomeia.service": "core.storage"
+    },
+    "healthcheck": {
+      "test": ["CMD-SHELL", "sqlite3 /data/neurohomeia.db 'SELECT 1;'"],
+      "interval": "30s",
+      "timeout": "5s",
+      "retries": 3,
+      "start_period": "10s"
+    }
+  },
+  "mcp": {
+    "service_id": "sqlite2mqtt",
+    "topics": {
+      "discovery": "mcp/services/sqlite2mqtt/discovery",
+      "data": "sqlite/+/data",
+      "commands": "sqlite/commands/#",
+      "query": "sqlite/query/request",
+      "response": "sqlite/query/response"
+    },
+    "schemas": {
+      "mcp": "https://github.com/moreau66/MCP-SQLite2Mqtt/blob/main/schemas/mcp-schema.json",
+      "tools": "https://github.com/moreau66/MCP-SQLite2Mqtt/blob/main/schemas/mcp-tools-schema.json",
+      "resources": "https://github.com/moreau66/MCP-SQLite2Mqtt/blob/main/schemas/mcp-resources-schema.json"
+    }
+  },
+  "ui_component": {
+    "component_path": "SQLiteContainer",
+    "mode": "embedded"
+  },
+  "docker_compose": {
+    "depends_on": ["mosquitto"],
+    "networks": ["smart-home-network"],
+    "profiles": ["core", "database"]
+  },
+  "dependencies": {
+    "required": ["mosquitto"],
+    "optional": []
+  },
+  "documentation": {
+    "readme_url": "https://github.com/moreau66/MCP-SQLite2Mqtt/blob/main/README.md",
+    "github_url": "https://github.com/moreau66/MCP-SQLite2Mqtt",
+    "docker_hub_url": "https://hub.docker.com/r/moreau66/sqlite2mqtt",
+    "mcp_spec_url": "https://github.com/moreau66/MCP-SQLite2Mqtt/blob/main/docs/MCP_SPEC.md"
+  }
+}
