@@ -6,7 +6,7 @@
     "description": "Base de données SQLite avec passerelle MQTT pour stockage local léger et rapide des données de capteurs",
     "author": "moreau66",
     "category": "core",
-    "tags": ["core", "sqlite", "database", "mqtt", "storage", "local"],
+    "tags": ["core", "database", "local", "mqtt", "storage", "sqlite"],
     "icon": "Database"
   },
   "container": {
